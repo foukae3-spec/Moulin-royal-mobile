@@ -243,6 +243,33 @@
             margin-top: 2px;
         }
 
+        .total-units-badge {
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            box-shadow: 0 2px 8px rgba(34, 197, 94, 0.3);
+        }
+
+        .label-footer {
+            margin-top: 12px;
+            padding-top: 10px;
+            border-top: 2px solid #22c55e;
+            text-align: center;
+        }
+
+        .total-check {
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: #4ade80;
+            background: rgba(34, 197, 94, 0.15);
+            padding: 8px 16px;
+            border-radius: 8px;
+            display: inline-block;
+        }
+
         .clear-btn {
             display: block;
             width: 100%;
@@ -299,7 +326,8 @@
         </div>
 
         <div class="connection-code">
-            <div class="code-label">رمز الاتصال</div>
+            <div class="code-label">رمز الاتصال <span id="regenerateCode"
+                    style="font-size: 0.7rem; cursor: pointer; opacity: 0.5; margin-right: 5px;">(🔄 تغيير)</span></div>
             <div id="connectionCode" class="code-value">----</div>
         </div>
 

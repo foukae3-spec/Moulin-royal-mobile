@@ -4,16 +4,23 @@
 class LabelReceiver {
     constructor() {
         this.labels = [];
-        this.connectionCode = this.generateCode();
+        this.connectionCode = this.getOrCreateCode();
         this.ws = null;
         this.wsUrl = 'wss://free.blr2.piesocket.com/v3/moulinroyal?api_key=oCdCMcMPQpbvNjUIzqtvF1d2X2okWpDQQYAsgTUf&notify_self=1';
 
         this.init();
     }
 
-    generateCode() {
-        // Generate a 4-digit code
-        return Math.floor(1000 + Math.random() * 9000).toString();
+    getOrCreateCode() {
+        // Try to load saved code from localStorage
+        const savedCode = localStorage.getItem('mr_mobile_connection_code');
+        if (savedCode && savedCode.length === 4) {
+            return savedCode;
+        }
+        // Generate new code and save it
+        const newCode = Math.floor(1000 + Math.random() * 9000).toString();
+        localStorage.setItem('mr_mobile_connection_code', newCode);
+        return newCode;
     }
 
     init() {
@@ -23,11 +30,35 @@ class LabelReceiver {
         // Setup clear button
         document.getElementById('clearBtn').addEventListener('click', () => this.clearLabels());
 
+        // Setup regenerate code button
+        const regenerateBtn = document.getElementById('regenerateCode');
+        if (regenerateBtn) {
+            regenerateBtn.addEventListener('click', () => this.regenerateCode());
+        }
+
         // Connect to WebSocket
         this.connect();
 
         // Load saved labels from localStorage
         this.loadSavedLabels();
+    }
+
+    regenerateCode() {
+        if (confirm('هل تريد تغيير رمز الاتصال؟ ستحتاج لإدخال الرمز الجديد في التطبيق.')) {
+            // Generate new code
+            const newCode = Math.floor(1000 + Math.random() * 9000).toString();
+            localStorage.setItem('mr_mobile_connection_code', newCode);
+            this.connectionCode = newCode;
+
+            // Update display
+            document.getElementById('connectionCode').textContent = newCode;
+
+            // Reconnect with new code
+            if (this.ws) {
+                this.ws.close();
+            }
+            this.connect();
+        }
     }
 
     connect() {
@@ -160,10 +191,14 @@ class LabelReceiver {
         let html = '<div class="empty-state" id="emptyState" style="display: none;"><div class="empty-icon">📦</div><p>لا توجد ملصقات بعد</p></div>';
 
         this.labels.forEach((label, index) => {
+            // Calculate total units if not provided (backwards compatibility)
+            const totalUnits = label.totalUnits || label.items.reduce((sum, item) => sum + item.quantity, 0);
+
             html += `
                 <div class="label-card" ${index === 0 ? 'style="border-color: #f59e0b;"' : ''}>
                     <div class="label-header">
                         <span class="order-id">#${label.orderId}</span>
+                        <span class="total-units-badge">${totalUnits} وحدة</span>
                         <span class="order-time">${label.receivedAt}</span>
                     </div>
                     <div class="customer-name">${label.customerName}</div>
@@ -177,6 +212,9 @@ class LabelReceiver {
                                 </div>
                             </div>
                         `).join('')}
+                    </div>
+                    <div class="label-footer">
+                        <span class="total-check">✓ إجمالي: ${totalUnits} وحدة</span>
                     </div>
                 </div>
             `;
